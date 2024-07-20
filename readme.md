@@ -50,3 +50,29 @@ systemctl --user enable obex
 systemctl --user start obex
 ```
 
+**3. Pair your phone using `bluetoothctl`**
+
+### Project Installation 
+
+> Run:
+```bash
+git clone https://github.com/Identityofsine/sms-server && cd sms-server && pip install -r requirements.txt 
+```
+
+## Usage
+
+After you have paired your phone with your computer, you can run the server using the following command:
+
+```bash
+python __init__.py --device <device_address>
+```
+
+> Find the `<device_address>` using the `bluetoothctl` command
+
+### Verbose
+
+You can also run the server in verbose mode by adding the `--debug` flag
+
+```bash
+python __init__.py --device <device_address> --debug
+```
