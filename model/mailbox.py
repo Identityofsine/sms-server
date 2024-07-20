@@ -30,7 +30,8 @@ class Mailbox:
 		pass	
 
 	def sort(self):
-		self.messages = sorted(self.messages, key = lambda x: x.date)
+		#reverse sort by date
+		self.messages.sort(key = lambda x: x.date, reverse = False)
 
 	def get_message(self, key: str):
 		for msg in self.messages:

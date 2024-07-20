@@ -24,7 +24,7 @@ def createMAPSession() -> Callable:
 		ListMessages = session_if.ListMessages 
 		return ListMessages
 	except dbus.exceptions.DBusException as e:
-		err.obex_error(e, obex)
+		obex_error(e, obex)
 		return lambda x, y: "Error" 
 
 

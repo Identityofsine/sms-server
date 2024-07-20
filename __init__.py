@@ -24,6 +24,7 @@ while True:
 	threading.Event().wait(1)
 	msgs = msg("", {})
 	mailbox.update(msgs)
+	print("NEW LINE BEEBS!")
 	print(mailbox.to_string())
 
 
