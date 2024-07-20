@@ -6,6 +6,7 @@ from .err import obex_error
 session_bus = dbus.SessionBus()
 
 def createPBAPSession() -> Callable:
+	print("Creating PBAP session")
 	obex = session_bus.get_object(
 					'org.bluez.obex',
 					'/org/bluez/obex',
@@ -18,8 +19,8 @@ def createPBAPSession() -> Callable:
 		session_if = dbus.Interface(session_proxy, 'org.bluez.obex.PhonebookAccess1')
 		Select = session_if.Select
 		Select("int", "pb")
-		PullAll = session_if.PullAll
-		return PullAll
+		PullAll = session_if.PullAll;
+		return lambda x: PullAll(); session_if.RemoveSession(session) 
 	except dbus.exceptions.DBusException as e:
 		obex_error(e, obex)
 		return lambda x, y: "Error"

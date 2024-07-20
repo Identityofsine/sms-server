@@ -1,30 +1,23 @@
 import threading
 import os
 from datetime import datetime as Date
-from model.mailbox import Mailbox
+from model.device import Device, ConnectedDevice
 from bt.pbap import createPBAPSession
 from bt.map import createMAPSession
 
 
-
-if not os.path.exists("/tmp"):
-	os.mkdir("/tmp")
-
-if not os.path.exists("/tmp/phonebook.vcf"):
-	print("Creating phonebook file")
-	createPBAPSession()("/tmp/phonebook.vcf", {})
-	
-msg = createMAPSession()
-msgs = msg("", {})
-mailbox = Mailbox.from_obex(msgs)
-print(mailbox.to_string())
+os.system("clear")
+d = Device("78:FB:D8:94:FC:68", "kevin's Iphone")
+n = d.attempt_connect()
+while n is None:
+	print(f"Failed to connect to device {d.name} at address {d.address}, trying again in 5 seconds")
+	n = d.attempt_connect()
+	threading.Event().wait(5)
+	pass
 
 while True:
 	#sleep thread
-	threading.Event().wait(1)
-	msgs = msg("", {})
-	mailbox.update(msgs)
-	print("NEW LINE BEEBS!")
-	print(mailbox.to_string())
+	print(n.mailbox.to_json())
+	
 
 
