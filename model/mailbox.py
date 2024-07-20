@@ -6,9 +6,10 @@ from .message import Message
 from util.log import log
 
 class Mailbox:
-	messages: list[Message]
+	messages: list[Message] 
 	poll: Callable 
 	src: str = "Mailbox"
+	alreadypolling: bool = False
 
 	def __init__(self, messages, poll):
 		self.messages = messages
@@ -17,16 +18,28 @@ class Mailbox:
 		
 
 	def startpolling(self):
-		asyncio.run(self.pollfunc())
+		if not self.alreadypolling:
+			self.alreadypolling = True
+		else:
+			return
+		asyncio.create_task(self.pollfunc())
+
+		pass
 	
 	async def pollfunc(self):
+		log(f"[{Mailbox.src}] Polling for new messages")
 		while True:
-			await asyncio.sleep(5)
 			try:
-				self.update(self.poll())
+				await asyncio.sleep(1)
+				#please keep self.update here too
+				poll_data = self.poll()
+				self.update(poll_data)
+				print(self.to_string())
 			except Exception as e:
-				log(f"[{Mailbox.src}] {e}")
-				return
+				log(f"[{Mailbox.src}] {e}")	
+				#try to reconnect
+
+				pass
 
 	@staticmethod
 	def from_obex(obex_msg: dbus.Dictionary, poll: Callable):
@@ -34,11 +47,13 @@ class Mailbox:
 			messages = []
 			for key in obex_msg.keys():
 				msg = obex_msg[key]
-				msg_obj = Message(msg["Sender"], msg["Subject"], msg["Timestamp"], key, True if msg["Read"] == 1 else False)
+
+				msg_obj = Message(msg["Sender"], msg["Subject"], msg["Timestamp"], f"{key}", True if msg["Read"] == 1 else False)
 				messages.append(msg_obj)
 			log(f"[{Mailbox.src}] Created mailbox with {len(messages)} messages")
 			return Mailbox(messages, poll)
 		except Exception as e:
+			log(f"[{Mailbox.src}] {e}")
 			return None
 
 	def update(self, obex_msg: dbus.Dictionary):
@@ -69,10 +84,11 @@ class Mailbox:
 
 
 	def to_string(self):
-		return "\n\n".join([msg.to_string() for msg in self.messages])
+		#return "\n\n".join([msg.to_string() for msg in self.messages])
+		return self.messages[0].to_string() 
 
 	def to_json(self):
-		return [msg.__dict__ for msg in self.messages]
+		return [self.messages[i].to_json() for i in range(len(self.messages))]
 
 
 

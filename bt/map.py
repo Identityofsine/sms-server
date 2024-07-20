@@ -41,7 +41,7 @@ def createMAPSession(mac: str) -> Callable:
 		obex_error(e, obex)
 		if session_outside is not None:
 			obex_if.CloseSession(session_outside)
+		raise DeviceDisconnectedError("createMAPSession")
 
-		return lambda x, y: "Error" 
 
 

@@ -15,7 +15,7 @@ class Device:
 		self.address = address
 		self.name = name
 	
-	def attempt_connect(self): 
+	async def attempt_connect(self): 
 		#connect to device
 		try:
 			log(f"Attempting to connect to device {self.name} at address {self.address}")
