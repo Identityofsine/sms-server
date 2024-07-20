@@ -25,21 +25,22 @@ class Mailbox:
 		asyncio.create_task(self.pollfunc())
 
 		pass
+
+	def stoppolling(self):
+		self.alreadypolling = False
+		pass
 	
 	async def pollfunc(self):
 		log(f"[{Mailbox.src}] Polling for new messages")
-		while True:
+		while self.alreadypolling:
 			try:
 				await asyncio.sleep(1)
 				#please keep self.update here too
 				poll_data = self.poll()
 				self.update(poll_data)
-				print(self.to_json())
 			except Exception as e:
-				log(f"[{Mailbox.src}] {e}")	
-				#try to reconnect
-
-				pass
+				log(f"[{Mailbox.src}::pollfunc] {e}")	
+				return
 
 	@staticmethod
 	def from_obex(obex_msg: dbus.Dictionary, poll: Callable):

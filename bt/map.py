@@ -16,7 +16,7 @@ def createMAPSession(mac: str) -> Callable:
 	#print methods
 	session_outside = None
 	try:
-		session = obex_if.CreateSession("78:FB:D8:94:FC:68", {"Target":"MAP"})
+		session = obex_if.CreateSession(mac, {"Target":"MAP"})
 		session_outside = session
 		session_proxy = session_bus.get_object('org.bluez.obex', session)
 		session_if = dbus.Interface(session_proxy, 'org.bluez.obex.MessageAccess1')
@@ -39,8 +39,6 @@ def createMAPSession(mac: str) -> Callable:
 		return get_messages
 	except dbus.exceptions.DBusException as e:
 		obex_error(e, obex)
-		if session_outside is not None:
-			obex_if.CloseSession(session_outside)
 		raise DeviceDisconnectedError("createMAPSession")
 
 

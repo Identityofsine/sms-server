@@ -17,10 +17,12 @@ class Device:
 	
 	async def attempt_connect(self): 
 		#connect to device
+		mb = None
 		try:
 			log(f"Attempting to connect to device {self.name} at address {self.address}")
 			if connect(self.address):
 				log(f"[{self.src}] Connected to device {self.name} at address {self.address}")
+				ConnectedDevice.init__pbap(self.address)
 				msg = createMAPSession(self.address)
 				log(f"[{self.src}] Connected to MAP session")
 				msgs = msg()
@@ -35,7 +37,9 @@ class Device:
 				log(f"[{self.src}] Failed to connect to device {self.name} at address {self.address}")
 				return None
 		except Exception as e:
-			log(f"[{self.src}] {e}")
+			if mb is not None:
+				mb.stoppolling()
+			log(f"[{self.src}::attempt_connect] {e}")
 			return None
 
 class ConnectedDevice(Device):
@@ -44,17 +48,23 @@ class ConnectedDevice(Device):
 	def __init__(self, address:str, name:str, mailbox:Mailbox):
 		super().__init__(address, name)
 		self.mailbox = mailbox
-		self.__init__pbap()
 	
 	#private
-	def __init__pbap(self):
-		if not os.path.exists("/tmp"):
-			os.mkdir("/tmp")
-		if not os.path.exists("/tmp/phonebook.vcf"):
-			log("Creating phonebook file")
-			createPBAPSession()("/tmp/phonebook.vcf", {})
-		pass
-
-	def __init__map(self):
-		pass
+	@staticmethod
+	def init__pbap(address:str):
+		try:
+			if not os.path.exists("/opt/pybt/"):
+				os.mkdir("/opt/pybt/")
+			if not os.path.exists("/opt/pybt/phonebook.vcf"):
+				log("[ConnectedDevice] Creating phonebook file")
+				createPBAPSession(address)("/opt/pybt/phonebook.vcf", {})
+				if os.path.exists("/opt/pybt/phonebook.vcf"):
+					log("[ConnectedDevice::init__pbap] Success!")
+			return True
+		except Exception as e:
+			if isinstance(e, PermissionError):
+				log("[ConnectedDevice::init__pbap] Failed! - Please create /opt/pybt/ directory and try again (make sure you have write permissions)")
+			else:
+				log(f"[ConnectedDevice::init__pbap] Failed! - {e}")
+			return False
 
