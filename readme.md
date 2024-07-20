@@ -26,9 +26,9 @@ sudo apt-get install bluez bluez-obexd
 
 #### Arch-based systems
 ```bash
-    sudo pacman -S bluez bluez-utils
-    #using yay
-    yay -S bluez-obex
+sudo pacman -S bluez bluez-utils
+#using yay
+yay -S bluez-obex
 ```
 
 **2. Enable the Bluetooth services**
