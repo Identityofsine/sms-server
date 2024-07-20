@@ -17,6 +17,10 @@ async def main_thread():
 		await asyncio.sleep(5)	
 		pass
 
+	#while True:
+		#sleep thread
+		#print(n.mailbox.to_string())
+
 
 def main():
 	asyncio.get_event_loop().create_task(main_thread())

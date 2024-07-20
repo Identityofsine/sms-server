@@ -34,7 +34,7 @@ class Mailbox:
 				#please keep self.update here too
 				poll_data = self.poll()
 				self.update(poll_data)
-				print(self.to_string())
+				print(self.to_json())
 			except Exception as e:
 				log(f"[{Mailbox.src}] {e}")	
 				#try to reconnect
@@ -84,8 +84,8 @@ class Mailbox:
 
 
 	def to_string(self):
-		#return "\n\n".join([msg.to_string() for msg in self.messages])
-		return self.messages[0].to_string() 
+		return "\n\n".join([msg.to_string() for msg in self.messages])
+		#return self.messages[0].to_string() 
 
 	def to_json(self):
 		return [self.messages[i].to_json() for i in range(len(self.messages))]
