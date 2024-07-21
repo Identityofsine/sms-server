@@ -4,7 +4,7 @@ import os
 from util.log import log
 from bt.pbap import createPBAPSession
 from bt.map import createMAPSession
-from bt.pair import connect
+from bt.pair import connect, get_device_name 
 
 class Device:
 	address:str 
@@ -32,7 +32,7 @@ class Device:
 					log(f"[{self.src}] Failed to connect to device {self.name} at address {self.address}, trying again in 2 seconds")
 					threading.Event().wait(2)
 					mb = Mailbox.from_obex(msgs, msg)
-				return ConnectedDevice(self.address, self.name, mb)
+				return ConnectedDevice(self.address, get_device_name(self.address), mb)
 			else:
 				log(f"[{self.src}] Failed to connect to device {self.name} at address {self.address}")
 				return None
@@ -47,6 +47,7 @@ class ConnectedDevice(Device):
 
 	def __init__(self, address:str, name:str, mailbox:Mailbox):
 		super().__init__(address, name)
+		log(f"[ConnectedDevice] Connected to device {name} at address {address}")
 		self.mailbox = mailbox
 	
 	#private

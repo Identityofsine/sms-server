@@ -8,6 +8,8 @@ from model.device import Device, ConnectedDevice
 from bt.pbap import createPBAPSession
 from bt.map import createMAPSession
 from bt.reboot import reboot_bluetooth, reboot_obex
+from db.database import Database, DeviceInfo
+
 
 
 def arg_handler():
@@ -22,6 +24,7 @@ def arg_handler():
 async def main_thread(args):
 	
 	os.system("clear")
+
 	if args.device is None:
 		print("No device address provided, exiting")
 		asyncio.get_event_loop().stop()
@@ -32,19 +35,18 @@ async def main_thread(args):
 		await reboot_obex()
 
 
+	db = Database.get_instance()
   #"78:FB:D8:94:FC:68"
-	d = Device(args.device, "kevin's Iphone")
+	d = Device(args.device, "?")
 	n = await d.attempt_connect()
 	while n is None:
 		print(f"Failed to connect to device {d.name} at address {d.address}, trying again in 5 seconds")
 		n = await d.attempt_connect()
-		await asyncio.sleep(5)	
-		pass
-
+		await asyncio.sleep(5)		
 	#while True:
 		#sleep thread
 		#print(n.mailbox.to_string())
-
+	db.add_device(DeviceInfo.from_device(n))
 
 def main():
 	args = arg_handler()
