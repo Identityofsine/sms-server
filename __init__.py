@@ -24,9 +24,19 @@ def arg_handler():
 async def main_thread(args):
 	
 	os.system("clear")
+	db = Database.get_instance()
 
 	if args.device is None:
-		print("No device address provided, exiting")
+		devices = db.get_devices()
+		print('--Devices--')
+		for d in devices:
+			print(f"{d.name} - {d.address}")
+		print("Enter device address to connect to:")
+		args.device = input("")
+		if args.device not in [d.address for d in devices]:
+			print("Invalid device address provided, exiting...")
+		if args.device == "":
+			print("No device address provided, exiting...")
 		asyncio.get_event_loop().stop()
 		return
 
@@ -35,7 +45,6 @@ async def main_thread(args):
 		await reboot_obex()
 
 
-	db = Database.get_instance()
   #"78:FB:D8:94:FC:68"
 	d = Device(args.device, "?")
 	n = await d.attempt_connect()

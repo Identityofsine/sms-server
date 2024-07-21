@@ -2,6 +2,7 @@ import os
 from typing_extensions import ReadOnly
 from util.log import log
 import json
+import datetime
 
 #JSON Serialization
 class DeviceInfo():
@@ -9,14 +10,14 @@ class DeviceInfo():
 	address:str
 	last_connected:str
 
-	def __init__(self, name:str, address:str):
+	def __init__(self, name:str, address:str, last_connected:str = "Never"):
 		self.name = name
 		self.address = address
-		self.last_connected = "Never"
+		self.last_connected = last_connected 
 
 	@staticmethod
 	def from_device(device):
-		return DeviceInfo(device.name, device.address)
+		return DeviceInfo(device.name, device.address, str(datetime.datetime.now().strftime("%m/%d/%Y, %H:%M:%S")))
 
 
 class Database(object):
@@ -48,7 +49,8 @@ class Database(object):
 			with open(self.__path + self.__devices_file, "r") as f:
 				data = f.read()
 				data = json.loads(data)
-				self.__devices = data["devices"]
+				#convert to array  
+				self.__devices = [DeviceInfo(d['name'], d['address'], d['last_connected']) for d in data['devices']]
 		except Exception as e:
 			if isinstance(e, FileNotFoundError):
 				log(f"[Database] No database found at {self.__path}... Creating One!")
@@ -65,21 +67,32 @@ class Database(object):
 
 			log(f"[Database] Saving database to {self.__path}")
 			with open(self.__path + self.__devices_file, "w") as f:
+				if len(self.__devices) == 0:
+					f.write(json.dumps({"devices":[]}))
+					return
 				f.write(json.dumps({"devices":[obj.__dict__ for obj in self.__devices]}))
 		except Exception as e:
 			log(f"[Database] Failed to save database: {e}")
 		pass
 
 	def add_device(self, device:DeviceInfo):
-		log(f"[Database] Adding device {device.name} at address {device.address}")
-		for d in self.__devices:
-			if d["address"] == device.address:
-				d["name"] = device.name
-				d["last_connected"] = device.last_connected
-				self.__save()
-				return
-		self.__devices.append(device)
-		self.__save()
+		try: 
+			log(f"[Database] Adding device {device.name} at address {device.address}")
+			for d in self.__devices:
+				if d.address == device.address:
+					log(f"[Database] Device {device.name} at address {device.address} already exists, updating last connected time")
+					d.name = device.name
+					d.last_connected = device.last_connected
+					self.__save()
+					return
+			self.__devices.append(device)
+			self.__save()
+		except Exception as e:
+			log(f"[Database::add_device] {e}")
+
+	def get_devices(self):
+		return self.__devices
+
 
 
 
