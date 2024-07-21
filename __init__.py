@@ -65,27 +65,26 @@ async def main_thread(args):
 		await asyncio.sleep(5)		
 
 	db.add_device(DeviceInfo.from_device(n))
-	if not args.silent:
-		while True:
-			#sleep thread
-			await asyncio.sleep(1)
+	while True:
+		#sleep thread
+		await asyncio.sleep(1)
+		if not args.silent:
 			if not args.pretty:
 				print(n.mailbox.to_json())
 			else:
 				print(n.mailbox.to_string())
+		pass
 
 
 def main():
 	args = arg_handler()
 	threads = []
 	#main thread
-
 	# hacky way to get around the deadlock 
 	t = threading.Thread(target=asyncio.run, args=(main_thread(args),))
 	threads.append(t)
 	t.start()
 
-	asyncio.get_event_loop().create_task(main_thread(args))
 	loop = asyncio.get_event_loop()
 	loop.run_forever()
 	pass

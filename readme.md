@@ -2,6 +2,12 @@
 
 This is a simple *stdout* server that listens for incoming SMS messages and prints them out in a JSON format. This is powered using Bluetooth, python-dbus and BlueZ. 
 
+This project will prove very useful for those who want to interface their phone's SMS messages with their computer. This is project is also designed to be run on a Raspberry Pi or any other Linux-based system -- allowing you to have a dedicated SMS receiver. This is perfect for intergrating with IoT projects such as one of those smart mirrors or a home automation system.
+
+## Features
+- [x] Read incoming SMS messages
+- [x] Read incoming MMS messages
+
 ## Note
 
 This is currently a work in progress and in result is not fully stable. But it is designed to be a simple and easy way to interface your phone's texts with your computer using the MAP profile.

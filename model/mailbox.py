@@ -7,52 +7,21 @@ from util.log import log
 
 class Mailbox:
 	messages: list[Message] 
-	poll: Callable 
 	src: str = "Mailbox"
-	alreadypolling: bool = False
 
-	def __init__(self, messages, poll):
+	def __init__(self, messages):
 		self.messages = messages
-		self.poll = poll
-		self.startpolling()
-		
-
-	def startpolling(self):
-		if not self.alreadypolling:
-			self.alreadypolling = True
-		else:
-			return
-		asyncio.create_task(self.pollfunc())
-
-		pass
-
-	def stoppolling(self):
-		self.alreadypolling = False
-		pass
-	
-	async def pollfunc(self):
-		log(f"[{Mailbox.src}] Polling for new messages")
-		while self.alreadypolling:
-			try:
-				await asyncio.sleep(1)
-				#please keep self.update here too
-				poll_data = self.poll()
-				self.update(poll_data)
-			except Exception as e:
-				log(f"[{Mailbox.src}::pollfunc] {e}")	
-				return
 
 	@staticmethod
-	def from_obex(obex_msg: dbus.Dictionary, poll: Callable):
+	def from_obex(obex_msg: dbus.Dictionary):
 		try:
 			messages = []
 			for key in obex_msg.keys():
 				msg = obex_msg[key]
-
 				msg_obj = Message(msg["Sender"], msg["Subject"], msg["Timestamp"], f"{key}", True if msg["Read"] == 1 else False)
 				messages.append(msg_obj)
 			log(f"[{Mailbox.src}] Created mailbox with {len(messages)} messages")
-			return Mailbox(messages, poll)
+			return Mailbox(messages)
 		except Exception as e:
 			log(f"[{Mailbox.src}] {e}")
 			return None
@@ -71,11 +40,12 @@ class Mailbox:
 				msg = obex_msg[key]
 				msg_obj = Message(msg["Sender"], msg["Subject"], msg["Timestamp"], key, True if msg["Read"] == 1 else False)
 				self.messages.append(msg_obj)
+		self.sort()
 		pass	
 
 	def sort(self):
 		#reverse sort by date
-		self.messages.sort(key = lambda x: x.date, reverse = False)
+		self.messages.sort(key = lambda x: x.date, reverse = True)
 
 	def get_message(self, key: str):
 		for msg in self.messages:

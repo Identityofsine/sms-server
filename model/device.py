@@ -1,6 +1,8 @@
+from typing import Callable
 from .mailbox import Mailbox
 import threading
 import os
+import asyncio
 from util.log import log
 from bt.pbap import createPBAPSession
 from bt.map import createMAPSession
@@ -27,28 +29,45 @@ class Device:
 				log(f"[{self.src}] Connected to MAP session")
 				msgs = msg()
 				log(f"[{self.src}] Connected to OBEX session")
-				mb = Mailbox.from_obex(msgs, msg)
+				mb = Mailbox.from_obex(msgs)
 				while mb is None:
 					log(f"[{self.src}] Failed to connect to device {self.name} at address {self.address}, trying again in 2 seconds")
 					threading.Event().wait(2)
-					mb = Mailbox.from_obex(msgs, msg)
-				return ConnectedDevice(self.address, get_device_name(self.address), mb)
+					mb = Mailbox.from_obex(msgs)
+				return ConnectedDevice(self.address, get_device_name(self.address), mb, msg)
 			else:
 				log(f"[{self.src}] Failed to connect to device {self.name} at address {self.address}")
 				return None
 		except Exception as e:
-			if mb is not None:
-				mb.stoppolling()
 			log(f"[{self.src}::attempt_connect] {e}")
 			return None
 
 class ConnectedDevice(Device):
 	mailbox: Mailbox
+	connection: bool = True
+	poll: Callable
 
-	def __init__(self, address:str, name:str, mailbox:Mailbox):
+	def __init__(self, address:str, name:str, mailbox:Mailbox, poll: Callable):
 		super().__init__(address, name)
 		log(f"[ConnectedDevice] Connected to device {name} at address {address}")
 		self.mailbox = mailbox
+		self.poll = poll
+		asyncio.create_task(self.start_poll())
+
+
+	def attempt_reconnect(self):
+		log(f"[ConnectedDevice] Attempting to reconnect to device {self.name} at address {self.address}")
+		self = asyncio.create_task(self.attempt_connect())
+	
+	async def start_poll(self):
+		try:
+			while self.connection:
+				await asyncio.sleep(5)
+				self.mailbox.update(self.poll())
+		except Exception as e:
+			log(f"[ConnectedDevice::start_poll] {e}")
+			self.connection = False
+			self.attempt_reconnect()
 	
 	#private
 	@staticmethod
@@ -68,4 +87,8 @@ class ConnectedDevice(Device):
 			else:
 				log(f"[ConnectedDevice::init__pbap] Failed! - {e}")
 			return False
+
+	def update_mailbox(self, obex_msg: dict):
+		self.mailbox.update(obex_msg)
+		pass
 
