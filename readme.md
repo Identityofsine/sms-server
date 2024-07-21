@@ -69,6 +69,22 @@ python __init__.py --device <device_address>
 
 > Find the `<device_address>` using the `bluetoothctl` command
 
+By default, the server will print out the incoming messages in a redundant JSON format. 
+
+```json
+{
+    "sender": "+18885521442",
+    "subject": "their message",
+    "timestamp": "2024-07-01 12:00:00"
+}
+```
+
+> You can also enable a more human readable format by adding the `--pretty` or `-p` flag
+
+```bash
+python __init__.py --device <device_address> --pretty
+```
+
 ### Verbose
 
 You can also run the server in verbose mode by adding the `--debug` flag

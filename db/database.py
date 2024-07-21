@@ -93,6 +93,12 @@ class Database(object):
 	def get_devices(self):
 		return self.__devices
 
+	def get_device_name(self, address: str) -> str:
+		for d in self.__devices:
+			if d.address == address:
+				return d.name
+		return "?"
+
 
 
 

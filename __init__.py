@@ -18,6 +18,8 @@ def arg_handler():
 	parser.add_argument("-d", "--device", help="Device address to connect to", type=str)
 	parser.add_argument("-D", "--debug", help="Enable verbose logging", action="store_true")
 	parser.add_argument('-r', "--reboot", help="Reboot Bluetooth Service", action="store_true")
+	parser.add_argument('-S', "--silent", help="Disable output (use for debugging stuff)", action="store_true")
+	parser.add_argument('-p', "--pretty", help="Print output to something human readable", action="store_true")
 	args = parser.parse_args()
 	return args
 
@@ -55,19 +57,34 @@ async def main_thread(args):
 
 
   #"78:FB:D8:94:FC:68" - my iphone 
-	d = Device(args.device, "?")
+	d = Device(args.device, db.get_device_name(args.device))
 	n = await d.attempt_connect()
 	while n is None:
 		print(f"Failed to connect to device {d.name} at address {d.address}, trying again in 5 seconds")
 		n = await d.attempt_connect()
 		await asyncio.sleep(5)		
-	#while True:
-		#sleep thread
-		#print(n.mailbox.to_string())
+
 	db.add_device(DeviceInfo.from_device(n))
+	if not args.silent:
+		while True:
+			#sleep thread
+			await asyncio.sleep(1)
+			if not args.pretty:
+				print(n.mailbox.to_json())
+			else:
+				print(n.mailbox.to_string())
+
 
 def main():
 	args = arg_handler()
+	threads = []
+	#main thread
+
+	# hacky way to get around the deadlock 
+	t = threading.Thread(target=asyncio.run, args=(main_thread(args),))
+	threads.append(t)
+	t.start()
+
 	asyncio.get_event_loop().create_task(main_thread(args))
 	loop = asyncio.get_event_loop()
 	loop.run_forever()
