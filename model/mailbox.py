@@ -2,6 +2,9 @@ import dbus
 import dbus.proxies
 import asyncio
 from typing import Callable
+
+from model.contact import Contact
+from model.contactbook import ContactBook
 from .message import Message
 from util.log import log
 
@@ -13,12 +16,18 @@ class Mailbox:
 		self.messages = messages
 
 	@staticmethod
-	def from_obex(obex_msg: dbus.Dictionary):
+	def from_obex(obex_msg: dbus.Dictionary, contactbook: ContactBook | None):
 		try:
 			messages = []
 			for key in obex_msg.keys():
 				msg = obex_msg[key]
-				msg_obj = Message(msg["Sender"], msg["Subject"], msg["Timestamp"], f"{key}", True if msg["Read"] == 1 else False)
+				sender = None
+				if contactbook is not None:
+					sender = contactbook.get_contact(msg["Sender"])
+				if sender is None:
+					sender = Contact(msg["Sender"], msg["Sender"], msg["Sender"]) 
+
+				msg_obj = Message(sender, msg["Subject"], msg["Timestamp"], f"{key}", True if msg["Read"] == 1 else False)
 				messages.append(msg_obj)
 			log(f"[{Mailbox.src}] Created mailbox with {len(messages)} messages")
 			return Mailbox(messages)
@@ -26,19 +35,30 @@ class Mailbox:
 			log(f"[{Mailbox.src}] {e}")
 			return None
 
-	def update(self, obex_msg: dbus.Dictionary):
+	def update(self, obex_msg: dbus.Dictionary, contactbook: ContactBook | None):
 		if obex_msg is None:
 			log (f"[{Mailbox.src}] No messages to update")
 			return
 		log(f"[{Mailbox.src}] Updating mailbox with {len(obex_msg)} messages")
 		for key in obex_msg.keys():
 			i = self.get_message(key)
+			msg = obex_msg[key]
+			sender = None
 			if i is not None:
 				i.read = True if obex_msg[key]["Read"] == 1 else False	
+				# see if we can get the contact from the contactbook
+				if i.sender.name == msg["Sender"] and contactbook is not None:
+					sender = contactbook.get_contact(msg["Sender"])
+					if sender is not None:
+						i.sender = sender
 				continue
 			else :
-				msg = obex_msg[key]
-				msg_obj = Message(msg["Sender"], msg["Subject"], msg["Timestamp"], key, True if msg["Read"] == 1 else False)
+				if contactbook is not None:	
+					log(f"[{Mailbox.src}] Attempting to get contact {msg['Sender']} from contactbook")
+					sender = contactbook.get_contact(msg["Sender"])
+				if sender is None:
+					sender = Contact(msg["Sender"], msg["Sender"], msg["Sender"])
+				msg_obj = Message(sender, msg["Subject"], msg["Timestamp"], key, True if msg["Read"] == 1 else False)
 				self.messages.append(msg_obj)
 		self.sort()
 		pass	
