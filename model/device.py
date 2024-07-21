@@ -1,5 +1,6 @@
 from typing import Callable
 from .mailbox import Mailbox
+from .contact import ContactBook
 import threading
 import os
 import asyncio
@@ -44,6 +45,7 @@ class Device:
 
 class ConnectedDevice(Device):
 	mailbox: Mailbox
+	contactbook: ContactBook
 	connection: bool = True
 	poll: Callable
 
@@ -52,6 +54,7 @@ class ConnectedDevice(Device):
 		log(f"[ConnectedDevice] Connected to device {name} at address {address}")
 		self.mailbox = mailbox
 		self.poll = poll
+		self.contactbook = None 
 		asyncio.create_task(self.start_poll())
 
 
