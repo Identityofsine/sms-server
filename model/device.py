@@ -55,9 +55,15 @@ class ConnectedDevice(Device):
 		asyncio.create_task(self.start_poll())
 
 
-	def attempt_reconnect(self):
+	async def attempt_reconnect(self):
 		log(f"[ConnectedDevice] Attempting to reconnect to device {self.name} at address {self.address}")
-		self = asyncio.create_task(self.attempt_connect())
+		new = await self.attempt_connect()	
+		while new is None:
+			log(f"[ConnectedDevice] Failed to reconnect to device {self.name} at address {self.address}, trying again in 5 seconds")
+			await asyncio.sleep(5)
+			new = await self.attempt_connect()
+		self = new
+
 	
 	async def start_poll(self):
 		try:
@@ -67,7 +73,7 @@ class ConnectedDevice(Device):
 		except Exception as e:
 			log(f"[ConnectedDevice::start_poll] {e}")
 			self.connection = False
-			self.attempt_reconnect()
+			await self.attempt_reconnect()
 	
 	#private
 	@staticmethod

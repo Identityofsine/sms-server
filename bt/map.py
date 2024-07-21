@@ -21,9 +21,9 @@ def createMAPSession(mac: str) -> Callable:
 		session_proxy = session_bus.get_object('org.bluez.obex', session)
 		session_if = dbus.Interface(session_proxy, 'org.bluez.obex.MessageAccess1')
 		SetFolder = session_if.SetFolder
-		SetFolder("telecom/msg/inbox")
 		ListFolders = session_if.ListFolders
 		ListMessages = session_if.ListMessages 
+		SetFolder("telecom/msg/inbox")
 		def get_messages():
 			try: 
 				if isConnected("78:FB:D8:94:FC:68"):
