@@ -92,3 +92,27 @@ You can also run the server in verbose mode by adding the `--debug` flag
 ```bash
 python __init__.py --device <device_address> --debug
 ```
+
+## The Future
+
+> Note: PBAP support is here, I just haven't had the time to implement reading vcards yet.
+
+I plan to add more features to this project such as the ability to send messages, read contacts, send commands through stdio, and more.
+
+Most importantly, I plan to dockerize this project and make it much more easy to setup and use.
+
+## Links
+
+- [BlueZ](https://git.kernel.org/pub/scm/bluetooth/bluez.git/)
+- [BlueZ Obex](https://git.kernel.org/pub/scm/bluetooth/obexd.git/)
+- [BlueZ Documentation](https://git.kernel.org/pub/scm/bluetooth/bluez.git/tree/doc)
+- [BlueZ Obex Documentation](https://git.kernel.org/pub/scm/bluetooth/obexd.git/tree/doc)
+- [Bluetooth](https://www.bluetooth.com/)
+- [Bluetooth SIG](https://www.bluetooth.com/specifications/specs/)
+- [Bluetooth SIG MAP](https://www.bluetooth.com/specifications/profiles-overview/)
+- [Bluetooth SIG MAP Spec](https://www.bluetooth.com/specifications/profiles-overview/)
+
+### Links that I need to read
+- [StackOverflow: Docker Bluetooth Passthrough](https://stackoverflow.com/questions/28868393/accessing-bluetooth-dongle-from-inside-docker)
+
+
