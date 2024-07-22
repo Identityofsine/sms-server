@@ -9,6 +9,10 @@ from bt.pbap import createPBAPSession
 from bt.map import createMAPSession
 from bt.pair import connect, get_device_name 
 
+
+POLL_RATE = 2.5
+RETRY_RATE = 5
+
 class Device:
 	address:str 
 	name:str
@@ -65,8 +69,8 @@ class ConnectedDevice(Device):
 		log(f"[ConnectedDevice] Attempting to reconnect to device {self.name} at address {self.address}")
 		new = await self.attempt_connect()	
 		while new is None:
-			log(f"[ConnectedDevice] Failed to reconnect to device {self.name} at address {self.address}, trying again in 5 seconds")
-			await asyncio.sleep(5)
+			log(f"[ConnectedDevice] Failed to reconnect to device {self.name} at address {self.address}, trying again in {RETRY_RATE} seconds")
+			await asyncio.sleep(RETRY_RATE)
 			new = await self.attempt_connect()
 		self = new
 
@@ -74,7 +78,7 @@ class ConnectedDevice(Device):
 	async def start_poll(self):
 		try:
 			while self.connection:
-				await asyncio.sleep(5)
+				await asyncio.sleep(POLL_RATE)
 				self.mailbox.update(self.poll(), self.contactbook)
 		except Exception as e:
 			log(f"[ConnectedDevice::start_poll] {e}")

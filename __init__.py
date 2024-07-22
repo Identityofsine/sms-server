@@ -9,6 +9,7 @@ from bt.pbap import createPBAPSession
 from bt.map import createMAPSession
 from bt.reboot import reboot_bluetooth, reboot_obex
 from db.database import Database, DeviceInfo
+from util.log import log, error, stdout 
 
 
 
@@ -20,12 +21,15 @@ def arg_handler():
 	parser.add_argument('-r', "--reboot", help="Reboot Bluetooth Service", action="store_true")
 	parser.add_argument('-S', "--silent", help="Disable output (use for debugging stuff)", action="store_true")
 	parser.add_argument('-p', "--pretty", help="Print output to something human readable", action="store_true")
+	parser.add_argument('-c', "--chunk", help="Split up the output into chunks to help NodeJS Pipe", action="store_true")
 	args = parser.parse_args()
 	return args
 
 async def main_thread(args):
 	
-	os.system("clear")
+	if args.debug:
+		os.system("clear")
+
 	db = Database.get_instance()
 
 	# if --device is not provided, list devices and ask for input
@@ -43,11 +47,11 @@ async def main_thread(args):
 		if args.device not in [d.address for d in devices]:
 			print("Invalid device address provided, TODO: add pairing")
 			asyncio.get_event_loop().stop()
-			return
+			exit(1)
 		elif args.device == "": # can look better
 			print("No device address provided, exiting...")
 			asyncio.get_event_loop().stop()
-			return
+			exit(1)
 		else:
 			pass
 
@@ -70,7 +74,13 @@ async def main_thread(args):
 		await asyncio.sleep(1)
 		if not args.silent:
 			if not args.pretty:
-				print(n.mailbox.to_json())
+				if args.chunk:
+					chunks = n.mailbox.to_chunks()
+					for c in chunks:
+						await asyncio.sleep(.25)
+						stdout(json.dumps(c)) # will return a single message object
+				else:
+					stdout(str(n.mailbox.to_json()))
 			else:
 				print(n.mailbox.to_string())
 		pass
@@ -84,9 +94,6 @@ def main():
 	t = threading.Thread(target=asyncio.run, args=(main_thread(args),))
 	threads.append(t)
 	t.start()
-
-	loop = asyncio.get_event_loop()
-	loop.run_forever()
 	pass
 
 main()

@@ -1,6 +1,7 @@
 import dbus
 import dbus.proxies
 import asyncio
+import json
 from typing import Callable
 
 from model.contact import Contact
@@ -79,7 +80,12 @@ class Mailbox:
 		#return self.messages[0].to_string() 
 
 	def to_json(self):
-		return [self.messages[i].to_json() for i in range(len(self.messages))]
+		#construct json object
+		return json.dumps([msg.to_json() for msg in self.messages])
+
+	def to_chunks(self):
+		return [msg.to_json() for msg in self.messages]
+		
 
 
 

@@ -1,5 +1,6 @@
 from .contact import Contact
 import vobject
+import base64
 from util.log import log
 
 class ContactBook():
@@ -21,7 +22,7 @@ class ContactBook():
 					name = str(contact['fn'][0].transformToNative().value)
 					number = str(contact['tel'][0].transformToNative().value).replace("+", "").replace(" ", "").replace("-", "").replace("(", "").replace(")", "")
 					try:
-						photo = str(contact['photo'][0].transformToNative().value)
+						photo = base64.b64encode(contact['photo'][0].transformToNative().value).decode("utf-8")
 					except KeyError:
 						photo = ""
 					contacts.append(Contact(uid, name, number, photo))
@@ -33,6 +34,6 @@ class ContactBook():
 	
 	def get_contact(self, number: str):
 		for c in self.contacts:
-			if c.number == number:
+			if c.number == number.replace("+", "").replace(" ", "").replace("-", "").replace("(", "").replace(")", ""):
 				return c
 		return None
