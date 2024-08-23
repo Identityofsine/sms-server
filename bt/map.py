@@ -26,7 +26,7 @@ def createMAPSession(mac: str) -> Callable:
 		SetFolder("telecom/msg/inbox")
 		def get_messages():
 			try: 
-				if isConnected("78:FB:D8:94:FC:68"):
+				if isConnected("mac"):
 					messages = ListMessages("", {})
 					return messages
 				else: 
